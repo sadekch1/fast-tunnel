@@ -1,4 +1,4 @@
-name: Fast SSH Server
+name: Cloudflare SSH Server
 
 on:
   workflow_dispatch:
@@ -23,16 +23,15 @@ jobs:
           sudo systemctl restart ssh
           echo "SSH Server is ready and running!"
 
-      - name: Install Bore (Fast TCP Tunnel)
+      - name: Install Cloudflared
         run: |
-          curl -sSfL https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | tar -xz -C /usr/local/bin
+          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflare-tunnel/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
 
-      - name: Start Tunnel and Show Connection Details
+      - name: Start Cloudflare Tunnel
         run: |
           echo "=================================================="
           echo "Username: root"
           echo "Password: ${{ github.event.inputs.password }}"
           echo "=================================================="
-          echo "Look for the listening port on bore.pub below:"
-          echo "=================================================="
-          bore local 22 --to bore.pub
+          cloudflared tunnel --url tcp://localhost:22
