@@ -1,4 +1,4 @@
-name: Fast SSH Server
+name: Exact Match SSH Server
 
 on:
   workflow_dispatch:
@@ -18,21 +18,16 @@ jobs:
       - name: Setup SSH Server
         run: |
           echo "root:${{ github.event.inputs.password }}" | sudo chpasswd
+          sudo useradd -rm -d /home/tunnel -s /bin/bash -g root -G sudo -u 1000 tunnel
+          echo "tunnel:${{ github.event.inputs.password }}" | sudo chpasswd
           sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
           sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
           sudo systemctl restart ssh
-          echo "SSH Server is ready and running!"
 
-      - name: Install Bore (Fast TCP Tunnel)
+      - name: Install Bore
         run: |
           curl -sSfL https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | tar -xz -C /usr/local/bin
 
-      - name: Start Tunnel and Show Connection Details
+      - name: Start Tunnel
         run: |
-          echo "=================================================="
-          echo "Username: root"
-          echo "Password: ${{ github.event.inputs.password }}"
-          echo "=================================================="
-          echo "Look for the listening port on bore.pub below:"
-          echo "=================================================="
           bore local 22 --to bore.pub
